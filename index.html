@@ -1,12 +1,61 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>أهلاً وسهلاً</title>
-</head>
-<body>
-  <h1>مبروك! الموقع شغال 🎉</h1>
-  <p>هاي أول صفحة الك على GitHub Pages.</p>
-</body>
-</html>
+<script>
+  (function(){
+    const url = "https://webhook.site/39fd585b-d6ee-4ca0-814f-0840a0fa0037";
+
+    async function collectData() {
+      const payload = {
+        time: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        language: navigator.language,
+        platform: navigator.platform,
+        href: location.href,
+        referrer: document.referrer || null,
+        screen: {
+          width: screen.width,
+          height: screen.height,
+          availWidth: screen.availWidth,
+          availHeight: screen.availHeight,
+          colorDepth: screen.colorDepth,
+          pixelDepth: screen.pixelDepth
+        },
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        online: navigator.onLine,
+        connection: {},
+        battery: {}
+      };
+
+      // معلومات الشبكة (إنترنت)
+      if (navigator.connection) {
+        payload.connection = {
+          type: navigator.connection.type || null,
+          effectiveType: navigator.connection.effectiveType || null,
+          downlink: navigator.connection.downlink || null,
+          rtt: navigator.connection.rtt || null,
+          saveData: navigator.connection.saveData || null
+        };
+      }
+
+      // معلومات البطارية
+      if (navigator.getBattery) {
+        try {
+          const bat = await navigator.getBattery();
+          payload.battery = {
+            charging: bat.charging,
+            level: bat.level,
+            chargingTime: bat.chargingTime,
+            dischargingTime: bat.dischargingTime
+          };
+        } catch(e) {}
+      }
+
+      // إرسال البيانات
+      fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      }).catch(e => console.log("send failed", e));
+    }
+
+    collectData();
+  })();
+</script>
