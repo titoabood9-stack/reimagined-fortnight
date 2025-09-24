@@ -1,206 +1,209 @@
 <!doctype html>
 <html lang="ar">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>محاكاة توعوية — خطر الروابط</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>عرض — صور / سجل مكالمات / موقع</title>
 <style>
-  body{font-family:Tahoma,Arial;direction:rtl;background:#f5f7fb;color:#111;margin:0;padding:18px}
-  .card{max-width:900px;margin:14px auto;background:#fff;padding:18px;border-radius:10px;box-shadow:0 6px 20px rgba(20,40,80,.06)}
-  h1{margin-top:0;color:#b71c1c}
-  .row{display:flex;gap:12px;flex-wrap:wrap}
-  button{padding:10px 14px;border-radius:8px;border:0;cursor:pointer}
-  .primary{background:#1976d2;color:#fff}
-  .accent{background:#4caf50;color:#fff}
-  .ghost{background:#fff;border:1px solid #1976d2;color:#1976d2}
+  body{font-family:Tahoma,Arial;direction:rtl;padding:14px;background:#f6f8fb;color:#111}
+  .card{max-width:900px;margin:10px auto;background:#fff;padding:14px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.06)}
+  h1{margin:0 0 8px;color:#0b63a8}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+  button{padding:8px 12px;border-radius:8px;border:0;background:#1976d2;color:#fff;cursor:pointer}
+  button.ghost{background:#fff;color:#1976d2;border:1px solid #1976d2}
   .muted{color:#666;font-size:14px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:12px}
-  .thumb{background:#eee;height:90px;border-radius:6px;display:flex;align-items:center;justify-content:center;overflow:hidden}
-  table{width:100%;border-collapse:collapse;margin-top:12px}
-  th,td{border:1px solid #e6e6e6;padding:8px;text-align:left;font-size:14px}
-  .danger{background:#fff5f5;border-left:4px solid #f44336;padding:10px;margin-top:12px}
-  .footer{font-size:13px;color:#666;margin-top:12px}
-  input[type=file]{display:none}
-  .center{text-align:center}
-  .consent{background:#fffbe6;border-left:4px solid #ff9800;padding:12px;margin-bottom:12px}
+  #map{width:100%;height:260px;border-radius:8px;border:1px solid #e0e0e0;margin-top:10px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-top:10px}
+  .thumb{height:110px;overflow:hidden;border-radius:8px;background:#eee;display:flex;align-items:center;justify-content:center}
+  textarea{width:100%;min-height:120px;padding:10px;border-radius:8px;border:1px solid #ddd}
+  .note{font-size:13px;color:#444;margin-top:8px}
 </style>
 </head>
 <body>
   <div class="card">
-    <h1>تنبيه توعوي — محاكاة خطر الروابط</h1>
-    <p class="muted">هذه صفحة محاكاة آمنة لعرض ماذا قد يحدث لو فتح شخص رابط خبيث. لا تحتوي الصفحة على وظائف خبيثة ولا تجمع بيانات أحد بدون موافقة صريحة.</p>
+    <h1>عرض: صور — سجل المكالمات — الموقع</h1>
+    <p class="muted">هذه صفحة تعرض صور (رفع أو كاميرا)، تُظهر الموقع بعد الموافقة، ويمكنك لصق سجل المكالمات لعرضه. لا تزال كل خطوة بيدك (موافقة/رفع).</p>
 
-    <!-- Consent -->
-    <div id="consentBox" class="consent">
-      <strong>موافقة للمحاكاة</strong>
-      <p class="muted">هل أنت مالك الجهاز أو عندك موافقة لاستخدام جهازك في تجربة توعوية؟</p>
-      <div class="row">
-        <button id="btnConsent" class="primary">نعم — أوافق</button>
-        <button id="btnDecline" class="ghost">لا — أريد مشاهدة الشرح فقط</button>
-      </div>
+    <div class="row">
+      <button id="btnGetLoc">اطلب الموقع & اعرض الخريطة</button>
+      <button id="btnOpenCam">افتح الكاميرا (التصوير فوري)</button>
+      <label class="ghost" for="fileImg">رفع صور من الجهاز</label>
+      <input id="fileImg" type="file" accept="image/*" multiple style="display:none">
+      <button id="btnClear" class="ghost">مسح العرض</button>
     </div>
 
-    <!-- Controls -->
-    <div id="controls" style="display:none">
-      <div class="row">
-        <button id="showSim" class="primary">عرض "البيانات المسروقة"</button>
-        <button id="useMine" class="accent">استخدم صوري (رفع من الجهاز)</button>
-        <label class="ghost" for="fileInput" style="cursor:pointer">رفع صور</label>
-        <input id="fileInput" type="file" accept="image/*" multiple />
-        <button id="btnRemedy" class="ghost">خطوات سريعة للإصلاح</button>
-      </div>
+    <div id="map" class="muted">الخريطة ستظهر هنا بعد السماح للموقع.</div>
 
-      <div style="margin-top:12px" id="explain" class="muted">
-        افتح الرابط واطلع ماذا يمكن أن يحدث — هذه مجرد محاكاة. <br>
-        (ملاحظة: رفع الصور اختياري لنموذج العرض؛ لن يتم إرسالها لأحد دون موافقة صريحة).
-      </div>
-
-      <!-- Simulated stolen data -->
-      <div id="simulation" style="display:none;margin-top:16px">
-        <div class="danger"><strong>محاكاة: تم الوصول إلى بياناتك</strong> — هذا مثال توعوي فقط.</div>
-
-        <h3 style="margin-top:12px">صور (مثال)</h3>
-        <div id="imgGrid" class="grid">
-          <!-- thumbnails will appear here -->
-        </div>
-
-        <h3 style="margin-top:12px">سجل المكالمات (مثال)</h3>
-        <table id="callsTable">
-          <thead><tr><th>الاسم</th><th>الرقم</th><th>النوع</th><th>المدة (ث)</th><th>التاريخ</th></tr></thead>
-          <tbody>
-            <!-- rows -->
-          </tbody>
-        </table>
-
-        <div style="margin-top:12px" class="row">
-          <button id="btnCloseSim" class="ghost">أغلق العرض</button>
-          <button id="btnCopyText" class="primary">انسخ نص التحذير/المشاركة</button>
-        </div>
-      </div>
-
-      <!-- Remedy panel -->
-      <div id="remedy" style="display:none;margin-top:14px">
-        <h3>خطوات سريعة عند الشك</h3>
-        <ol>
-          <li>أغلق المتصفح فوراً.</li>
-          <li>افحص التطبيقات المثبتة واحذف أي تطبيق غير معروف.</li>
-          <li>تحقق من صلاحيات Device Admin و Accessibility وأوقِف أي مدعوّة.</li>
-          <li>غيّر كلمات المرور المهمة وفعل 2FA.</li>
-          <li>إن استمرت الشكوك: شغّل Safe Mode أو فكر بإعادة ضبط المصنع بعد نسخ احتياطي.</li>
-        </ol>
-      </div>
-
+    <h3 style="margin-top:12px">الصور</h3>
+    <div id="imgGrid" class="grid">
+      <!-- thumbs -->
     </div>
 
-    <div class="footer center">
-      إعداد توعوي — لا تستخدم لأذية أو اختبار أجهزة غير مرخّص بها.
+    <h3 style="margin-top:12px">كاميرا مباشرة (إن سمحت)</h3>
+    <video id="camPreview" autoplay playsinline style="width:100%;max-height:360px;border-radius:8px;background:#000;display:none"></video>
+    <div class="row" style="margin-top:8px">
+      <button id="btnSnap" class="ghost" style="display:none">التقط صورة</button>
     </div>
+
+    <h3 style="margin-top:12px">سجل المكالمات (انسخ والصقه هنا)</h3>
+    <p class="muted">انسخ من سجل المكالمات أو اكتب بعض الأسطر لتمثيل البيانات؛ سيظهر تلقائياً.</p>
+    <textarea id="callsInput" placeholder="مثال: اسم,رقم,نوع(واردة/صادرة/فائتة),مدة(ث),2025-09-23 10:12&#10;أبو خالد,+971501234567,واردة,120,2025-09-23 10:12"></textarea>
+    <div class="row">
+      <button id="btnParse">عرض سجل المكالمات</button>
+      <button id="btnClearCalls" class="ghost">مسح السجل</button>
+    </div>
+
+    <table id="callsTable" style="width:100%;border-collapse:collapse;margin-top:10px;display:none">
+      <thead style="background:#f2f2f2"><tr><th>الاسم</th><th>الرقم</th><th>النوع</th><th>المدة (ث)</th><th>التاريخ</th></tr></thead>
+      <tbody></tbody>
+    </table>
+
+    <p class="note">ملاحظة: صفحة الويب لا تستطيع الوصول تلقائياً لسجل المكالمات أو صور الجهاز دون موافقتك أو تطبيق مثبت — هذه الطريقة تضمن توضيح الفكرة بطريقة قانونية وآمنة.</p>
   </div>
 
 <script>
-/* ====== بيانات تجريبية وهمية (تقدر تعدلها) ====== */
-const fakeCalls = [
-  {name:"أبو خالد", number:"+971501234567", type:"واردة", duration:120, date:"2025-09-23 10:12"},
-  {name:"أمينة", number:"+971509876543", type:"صادرة", duration:45, date:"2025-09-22 19:30"},
-  {name:"رقم مجهول", number:"+971599111222", type:"فائتة", duration:0, date:"2025-09-20 08:05"}
-];
-const placeholderImages = [
-  "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300'><rect width='100%' height='100%' fill='%23e0e0e0'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23666' font-size='20'>صورة توضيحية</text></svg>",
-  "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300'><rect width='100%' height='100%' fill='%23ffe0b2'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%23666' font-size='20'>مثال صورة</text></svg>"
-];
-
-/* ====== عناصر DOM ====== */
-const consentBox = document.getElementById('consentBox');
-const btnConsent = document.getElementById('btnConsent');
-const btnDecline = document.getElementById('btnDecline');
-const controls = document.getElementById('controls');
-const showSim = document.getElementById('showSim');
-const simulation = document.getElementById('simulation');
+/* عناصر */
+const btnGetLoc = document.getElementById('btnGetLoc');
+const mapDiv = document.getElementById('map');
+const fileImg = document.getElementById('fileImg');
 const imgGrid = document.getElementById('imgGrid');
-const callsTableBody = document.querySelector('#callsTable tbody');
-const btnCloseSim = document.getElementById('btnCloseSim');
-const fileInput = document.getElementById('fileInput');
-const useMine = document.getElementById('useMine');
-const remedy = document.getElementById('remedy');
-const btnRemedy = document.getElementById('btnRemedy');
-const btnCopyText = document.getElementById('btnCopyText');
+const btnOpenCam = document.getElementById('btnOpenCam');
+const camPreview = document.getElementById('camPreview');
+const btnSnap = document.getElementById('btnSnap');
+const btnClear = document.getElementById('btnClear');
+const callsInput = document.getElementById('callsInput');
+const btnParse = document.getElementById('btnParse');
+const callsTable = document.getElementById('callsTable');
+const callsBody = callsTable.querySelector('tbody');
+const btnClearCalls = document.getElementById('btnClearCalls');
 
-/* ====== السلوك ====== */
-btnConsent.onclick = () => {
-  consentBox.style.display = 'none';
-  controls.style.display = 'block';
-};
-btnDecline.onclick = () => {
-  // عرض الشرح فقط (بدون تفعيل المحاكاة)
-  consentBox.style.display = 'none';
-  controls.style.display = 'block';
-  document.getElementById('explain').innerHTML = "<strong>عرض توضيحي فقط:</strong> هذه المحاكاة تعرض مثالًا؛ لا نجري أي وصول إلى جهازك.";
-};
+let streamRef = null;
 
-showSim.onclick = () => {
-  populateSimulation();
-  simulation.style.display = 'block';
-  window.scrollTo({top: document.body.scrollHeight, behavior:'smooth'});
-};
+/* الموقع */
+btnGetLoc.addEventListener('click', ()=> {
+  if (!navigator.geolocation) {
+    mapDiv.innerText = 'المتصفح لا يدعم الموقع.';
+    return;
+  }
+  mapDiv.innerText = 'جاري طلب الموقع — راجع الإذن في المتصفح...';
+  navigator.geolocation.getCurrentPosition(pos => {
+    const lat = pos.coords.latitude.toFixed(6);
+    const lon = pos.coords.longitude.toFixed(6);
+    mapDiv.innerHTML = `<iframe width="100%" height="100%" style="border:0" src="https://maps.google.com/maps?q=${lat},${lon}&z=15&output=embed"></iframe>
+      <div style="margin-top:6px;font-size:14px;color:#333">خط العرض: ${lat} — خط الطول: ${lon} — دقة ≈ ${pos.coords.accuracy} متر</div>`;
+  }, err => {
+    mapDiv.innerText = 'تم رفض الموقع أو حصل خطأ: ' + (err.message || err.code);
+  }, {enableHighAccuracy:true, timeout:10000});
+});
 
-btnCloseSim.onclick = () => {
-  simulation.style.display = 'none';
-};
-
-btnRemedy.onclick = () => {
-  remedy.style.display = remedy.style.display === 'block' ? 'none' : 'block';
-  if (remedy.style.display === 'block') window.scrollTo({top: document.body.scrollHeight, behavior:'smooth'});
-};
-
-btnCopyText.onclick = () => {
-  const text = `تحذير: تم فتح رابط مريب وقد يؤدي إلى تسريب بيانات مثل الصور وسجل المكالمات. إن ظننت تعرضت: اغلق الصفحة، افحص التطبيقات، غيّر كلمات المرور وفعل 2FA.`;
-  navigator.clipboard.writeText(text).then(()=> alert('تم نسخ نص التحذير!'));
-};
-
-/* رفع صور من المستخدم لاستخدامها كمثال (اختياري وصريح) */
-fileInput.addEventListener('change', (ev) => {
-  const files = Array.from(ev.target.files).slice(0,5); // حد أقصى 5 للعرض
+/* رفع صور */
+fileImg.addEventListener('change', ev => {
+  const files = Array.from(ev.target.files).slice(0,10);
   imgGrid.innerHTML = '';
-  if (files.length === 0) {
-    placeholderImages.forEach(u => addThumb(u));
+  files.forEach(f=>{
+    const reader = new FileReader();
+    reader.onload = () => {
+      const d = document.createElement('div');
+      d.className = 'thumb';
+      d.innerHTML = `<img src="${reader.result}" style="width:100%;height:100%;object-fit:cover">`;
+      imgGrid.appendChild(d);
+    };
+    reader.readAsDataURL(f);
+  });
+});
+
+/* الكاميرا */
+btnOpenCam.addEventListener('click', async ()=>{
+  if (camPreview.style.display === 'none') {
+    try {
+      const s = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}, audio:false});
+      streamRef = s;
+      camPreview.srcObject = s;
+      camPreview.style.display = 'block';
+      btnSnap.style.display = 'inline-block';
+      btnOpenCam.innerText = 'أغلق الكاميرا';
+    } catch(e) {
+      alert('فشل فتح الكاميرا: ' + (e.message||e));
+    }
   } else {
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = () => addThumb(reader.result);
-      reader.readAsDataURL(file);
-    });
+    // اغلاق
+    if (streamRef) {
+      streamRef.getTracks().forEach(t=>t.stop());
+      streamRef = null;
+    }
+    camPreview.style.display = 'none';
+    btnSnap.style.display = 'none';
+    btnOpenCam.innerText = 'افتح الكاميرا (التصوير فوري)';
   }
 });
 
-/* زر "استخدم صوري" يفتح نافذة رفع */
-useMine.onclick = () => fileInput.click();
-
-/* اضافة صورة مصغرة */
-function addThumb(src) {
+btnSnap.addEventListener('click', ()=>{
+  if (!streamRef) return;
+  const video = camPreview;
+  const w = video.videoWidth, h = video.videoHeight;
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  c.getContext('2d').drawImage(video,0,0,w,h);
+  const data = c.toDataURL('image/jpeg', 0.85);
   const d = document.createElement('div');
   d.className = 'thumb';
-  d.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover" />`;
-  imgGrid.appendChild(d);
-}
+  d.innerHTML = `<img src="${data}" style="width:100%;height:100%;object-fit:cover">`;
+  imgGrid.prepend(d);
+});
 
-/* ملئ جدول المكالمات وادراج صور افتراضية */
-function populateSimulation() {
+/* مسح العرض */
+btnClear.addEventListener('click', ()=>{
   imgGrid.innerHTML = '';
-  placeholderImages.forEach(u => addThumb(u));
-  // If user uploaded, those are already added
+  mapDiv.innerHTML = 'الخريطة ستظهر هنا بعد السماح للموقع.';
+  if (streamRef) streamRef.getTracks().forEach(t=>t.stop());
+  camPreview.style.display = 'none';
+  btnSnap.style.display = 'none';
+  btnOpenCam.innerText = 'افتح الكاميرا (التصوير فوري)';
+  callsInput.value = '';
+  callsBody.innerHTML = '';
+  callsTable.style.display = 'none';
+});
 
-  // calls
-  callsTableBody.innerHTML = '';
-  fakeCalls.forEach(c => {
+/* معالجة سجل المكالمات من نص منسوخ */
+btnParse.addEventListener('click', ()=>{
+  const txt = callsInput.value.trim();
+  if (!txt) { alert('الصق أو أدخل بيانات السجل أولاً'); return; }
+  // نتوقع أسطر مفصولة بسطر جديد، كل سطر: name,number,type,duration,date
+  const lines = txt.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  callsBody.innerHTML = '';
+  lines.forEach(line=>{
+    const parts = line.split(',');
+    const name = (parts[0]||'—').trim();
+    const number = (parts[1]||'—').trim();
+    const type = (parts[2]||'—').trim();
+    const dur = (parts[3]||'0').trim();
+    const date = (parts[4]||'—').trim();
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${c.name}</td><td>${c.number}</td><td>${c.type}</td><td>${c.duration}</td><td>${c.date}</td>`;
-    callsTableBody.appendChild(tr);
+    tr.innerHTML = `<td>${escapeHtml(name)}</td><td>${escapeHtml(number)}</td><td>${escapeHtml(type)}</td><td>${escapeHtml(dur)}</td><td>${escapeHtml(date)}</td>`;
+    callsBody.appendChild(tr);
   });
-}
+  callsTable.style.display = 'table';
+});
 
-/* افعل المحاكاة الأولية لو المستخدم رفض الموافقة (عرض توضيحي فقط) */
-populateSimulation();
+/* مسح السجل */
+btnClearCalls.addEventListener('click', ()=> {
+  callsInput.value = '';
+  callsBody.innerHTML = '';
+  callsTable.style.display = 'none';
+});
 
+/* مساعدة: تهرب HTML نص */
+function escapeHtml(s){ return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* عند فتح الصفحة تلقائياً نعرض أي صور افتراضية صغيرة */
+(function initPlaceholders(){
+  imgGrid.innerHTML = '';
+  const svg1 = 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300'><rect width='100%' height='100%' fill='#e0e0e0'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#666' font-size='20'>صورة توضيحية</text></svg>`);
+  const svg2 = 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300'><rect width='100%' height='100%' fill='#ffe0b2'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#666' font-size='20'>مثال صورة</text></svg>`);
+  [svg1,svg2].forEach(src=>{
+    const d = document.createElement('div'); d.className='thumb'; d.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover">`; imgGrid.appendChild(d);
+  });
+})();
 </script>
 </body>
 </html>
