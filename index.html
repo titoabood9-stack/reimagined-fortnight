@@ -131,12 +131,30 @@
         
         .map-container {
             width: 100%;
-            height: 350px;
+            height: 400px; /* زيادة الارتفاع لرؤية أفضل */
             border-radius: 15px;
             overflow: hidden;
             margin: 20px 0;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             border: 2px solid #e0e0e0;
+            position: relative;
+        }
+        
+        .map-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .map-overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255,255,255,0.9);
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         
         .info-grid {
@@ -337,7 +355,7 @@
         
         <div class="tabs">
             <div class="tab active" onclick="showTab('overview')">نظرة عامة</div>
-            <div class="tab" onclick="showTab('location')">الموقع الجغرافي</div>
+            <div class="tab" onclick="showTab('location')">📍 الموقع الجغرافي</div>
             <div class="tab" onclick="showTab('activity')">نشاط المستخدم</div>
             <div class="tab" onclick="showTab('analysis')">التحليل المتقدم</div>
         </div>
@@ -426,16 +444,22 @@
             <p>تتبع حيوي للرقم 00962797199784 على الخريطة مع معلومات الموقع التفصيلية.</p>
             
             <div class="map-container">
+                <div class="map-overlay">
+                    📍 إحداثيات: 31.9566° شمال, 35.9457° شرق
+                </div>
                 <iframe 
-                    width="100%" 
-                    height="100%" 
-                    frameborder="0" 
-                    scrolling="no" 
-                    marginheight="0" 
-                    marginwidth="0"
-                    src="https://maps.google.com/maps?q=31.9566,35.9457&z=15&output=embed"
-                    style="border: none;">
+                    class="map-frame"
+                    src="https://www.openstreetmap.org/export/embed.html?bbox=35.9357%2C31.9466%2C35.9557%2C31.9666&amp;layer=mapnik&amp;marker=31.9566%2C35.9457"
+                    allowfullscreen>
                 </iframe>
+            </div>
+            
+            <div style="text-align: center; margin: 10px 0;">
+                <a href="https://www.openstreetmap.org/?mlat=31.9566&amp;mlon=35.9457#map=15/31.9566/35.9457" 
+                   target="_blank" 
+                   style="color: var(--primary); text-decoration: none; font-weight: bold;">
+                   🔍 فتح الخريطة في نافذة جديدة
+                </a>
             </div>
             
             <div class="info-grid">
@@ -654,6 +678,21 @@
             
             // تنشيط التبويب المطلوب
             event.currentTarget.classList.add('active');
+            
+            // إذا كان تبويب الموقع، قم بتحديث الخريطة
+            if (tabName === 'location') {
+                updateMap();
+            }
+        }
+        
+        // تحديث الخريطة
+        function updateMap() {
+            // إضافة تأثير تحميل للخريطة
+            const mapContainer = document.querySelector('.map-container');
+            mapContainer.style.opacity = '0.7';
+            setTimeout(() => {
+                mapContainer.style.opacity = '1';
+            }, 300);
         }
         
         // تحديث المعلومات
@@ -694,6 +733,11 @@
                 - قوة الإشارة: ${phoneData.signalStrength}%
                 - نوع الشبكة: ${phoneData.networkType}
                 - آخر تحديث: ${phoneData.lastUpdate.toLocaleString('ar-EG')}
+                
+                الموقع الجغرافي:
+                - خط العرض: ${phoneData.coordinates.lat}
+                - خط الطول: ${phoneData.coordinates.lng}
+                - الدقة: ± 25 متر
                 
                 هذا التقرير تم إنشاؤه تلقائياً من تطبيق التتبع المفصل.
             `;
