@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تطبيق التتبع المفصل للرقم 00962797199784</title>
+    <title>تطبيق التتبع المتكامل للرقم 00962797199784</title>
     <style>
         :root {
             --primary: #8e44ad;
@@ -30,7 +30,7 @@
         }
         
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
             background: white;
             border-radius: 20px;
@@ -131,7 +131,7 @@
         
         .map-container {
             width: 100%;
-            height: 400px; /* زيادة الارتفاع لرؤية أفضل */
+            height: 400px;
             border-radius: 15px;
             overflow: hidden;
             margin: 20px 0;
@@ -317,6 +317,26 @@
             background: var(--accent);
         }
         
+        .call-log {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .call-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .call-item:last-child {
+            border-bottom: none;
+        }
+        
         @media (max-width: 768px) {
             .tabs {
                 flex-direction: column;
@@ -348,16 +368,16 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📱 تطبيق التتبع المفصل</h1>
-            <p>تحليل متقدم للرقم 00962797199784</p>
+            <h1>📱 تطبيق التتبع المتكامل</h1>
+            <p>تحليل متقدم للرقم 00962797199784 مع خرائط تفاعلية</p>
             <div class="phone-display">00962797199784</div>
         </div>
         
         <div class="tabs">
             <div class="tab active" onclick="showTab('overview')">نظرة عامة</div>
             <div class="tab" onclick="showTab('location')">📍 الموقع الجغرافي</div>
-            <div class="tab" onclick="showTab('activity')">نشاط المستخدم</div>
-            <div class="tab" onclick="showTab('analysis')">التحليل المتقدم</div>
+            <div class="tab" onclick="showTab('calls')">📞 سجل المكالمات</div>
+            <div class="tab" onclick="showTab('analysis')">📊 التحليل المتقدم</div>
         </div>
         
         <!-- نظرة عامة -->
@@ -513,10 +533,10 @@
             </div>
         </div>
         
-        <!-- نشاط المستخدم -->
-        <div class="tab-content" id="activity">
-            <h2>تحليل النشاط والاستخدام</h2>
-            <p>رصد مفصل لأنماط استخدام الرقم 00962797199784 خلال الأسبوع الماضي.</p>
+        <!-- سجل المكالمات -->
+        <div class="tab-content" id="calls">
+            <h2>سجل المكالمات والرسائل</h2>
+            <p>تفاصيل كاملة عن المكالمات والرسائل المرتبطة بالرقم 00962797199784.</p>
             
             <div class="info-card">
                 <h3>إحصائيات الاستخدام</h3>
@@ -539,6 +559,35 @@
                 <div class="detail-row">
                     <span>أطول مكالمة:</span>
                     <span>24 دقيقة و 18 ثانية</span>
+                </div>
+            </div>
+            
+            <div class="call-log">
+                <h3>آخر المكالمات</h3>
+                <div class="call-item">
+                    <span>📞 مكالمة واردة</span>
+                    <span>من: 00962781234567</span>
+                    <span>اليوم 14:30 (12:45)</span>
+                </div>
+                <div class="call-item">
+                    <span>📞 مكالمة صادرة</span>
+                    <span>إلى: 00962799887766</span>
+                    <span>اليوم 11:15 (8:22)</span>
+                </div>
+                <div class="call-item">
+                    <span>💬 رسالة نصية</span>
+                    <span>من: 00962777665544</span>
+                    <span>اليوم 09:45</span>
+                </div>
+                <div class="call-item">
+                    <span>📞 مكالمة فائتة</span>
+                    <span>من: 00962755443322</span>
+                    <span>أمس 19:30</span>
+                </div>
+                <div class="call-item">
+                    <span>📞 مكالمة واردة</span>
+                    <span>من: 00962711223344</span>
+                    <span>أمس 15:45 (3:30)</span>
                 </div>
             </div>
             
